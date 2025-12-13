@@ -1,6 +1,6 @@
 # Plant Disease Early Detection App
 
-A React Native mobile application for early detection of plant diseases using AI-powered image analysis.
+A Flutter mobile application for early detection of plant diseases using AI-powered image analysis.
 
 ## Features
 
@@ -23,41 +23,45 @@ The app includes:
 
 ## Technology Stack
 
-- **React Native**: Cross-platform mobile development
-- **Expo**: Development platform and tools
-- **React Navigation**: Navigation between screens
-- **React Native Paper**: Material Design components
-- **Expo Camera**: Camera functionality
-- **Expo Image Picker**: Gallery image selection
-- **AsyncStorage**: Local data persistence
+- **Flutter**: Cross-platform mobile development
+- **Material Design**: Modern UI components
+- **Camera Plugin**: Camera functionality
+- **Image Picker**: Gallery image selection
+- **SharedPreferences**: Local data persistence
+- **Provider**: State management
+- **GoRouter**: Navigation between screens
 
 ## Installation
 
 1. Install dependencies:
 ```bash
-npm install
+flutter pub get
 ```
 
-2. Start the development server:
+2. Generate model files:
 ```bash
-npm start
+flutter pub run build_runner build
 ```
 
 3. Run on device/simulator:
 ```bash
-npm run android  # For Android
-npm run ios      # For iOS
+flutter run
 ```
 
 ## Project Structure
 
 ```
-src/
+lib/
 ├── screens/
-│   ├── HomeScreen.js      # Main dashboard
-│   ├── CameraScreen.js    # Image capture
-│   ├── ResultScreen.js    # Analysis results
-│   └── HistoryScreen.js   # Detection history
+│   ├── home_screen.dart      # Main dashboard
+│   ├── camera_screen.dart    # Image capture
+│   ├── result_screen.dart    # Analysis results
+│   └── history_screen.dart   # Detection history
+├── models/
+│   └── detection_result.dart # Data models
+├── providers/
+│   └── detection_provider.dart # State management
+└── main.dart                 # App entry point
 ```
 
 ## Key Features Implementation
@@ -76,7 +80,7 @@ src/
 
 ### Data Persistence
 - Local storage of detection history
-- Image URI preservation
+- Image path preservation
 - Search and filter capabilities
 
 ### User Experience
@@ -104,7 +108,7 @@ src/
 
 This is a frontend-only implementation with mock AI analysis. To integrate with a real AI service:
 
-1. Replace the mock analysis in `ResultScreen.js`
+1. Replace the mock analysis in `DetectionProvider.analyzeImage()`
 2. Add API integration for image upload
 3. Implement real-time disease detection
 4. Add user authentication if needed

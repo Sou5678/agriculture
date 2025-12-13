@@ -1,0 +1,52 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'detection_result.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+DetectionResult _$DetectionResultFromJson(Map<String, dynamic> json) =>
+    DetectionResult(
+      disease: json['disease'] as String,
+      confidence: (json['confidence'] as num).toDouble(),
+      severity: json['severity'] as String,
+      description: json['description'] as String,
+      symptoms: (json['symptoms'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      treatment: (json['treatment'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      prevention: (json['prevention'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
+      timestamp: json['timestamp'] as String,
+    );
+
+Map<String, dynamic> _$DetectionResultToJson(DetectionResult instance) =>
+    <String, dynamic>{
+      'disease': instance.disease,
+      'confidence': instance.confidence,
+      'severity': instance.severity,
+      'description': instance.description,
+      'symptoms': instance.symptoms,
+      'treatment': instance.treatment,
+      'prevention': instance.prevention,
+      'timestamp': instance.timestamp,
+    };
+
+HistoryItem _$HistoryItemFromJson(Map<String, dynamic> json) => HistoryItem(
+      id: json['id'] as String,
+      imageUri: json['imageUri'] as String,
+      result: DetectionResult.fromJson(json['result'] as Map<String, dynamic>),
+      timestamp: json['timestamp'] as String,
+    );
+
+Map<String, dynamic> _$HistoryItemToJson(HistoryItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'imageUri': instance.imageUri,
+      'result': instance.result,
+      'timestamp': instance.timestamp,
+    };
