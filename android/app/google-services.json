@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "770868101578",
+    "project_id": "agritech-e3c8c",
+    "storage_bucket": "agritech-e3c8c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:770868101578:android:046cd234bea087e8458f33",
+        "android_client_info": {
+          "package_name": "com.plant_disease_detector"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdUG0OsgXcKZZMbuHiSwuiWC1Une1SXdM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

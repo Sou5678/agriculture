@@ -116,3 +116,17 @@ This is a frontend-only implementation with mock AI analysis. To integrate with 
 ## License
 
 MIT License - feel free to use this code for your own projects.
+
+
+
+
+
+
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+// ...
+
+await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);

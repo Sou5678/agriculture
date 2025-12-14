@@ -1,9 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../models/detection_result.dart';
 import '../providers/detection_provider.dart';
+import '../core/utils/date_utils.dart';
+import '../widgets/optimized_image.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
@@ -100,19 +102,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   String _formatDate(String timestamp) {
-    final date = DateTime.parse(timestamp);
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
-    } else {
-      return 'Just now';
-    }
+    final date = AppDateUtils.parseISOString(timestamp);
+    return AppDateUtils.getRelativeTime(date);
   }
 
   Color _getSeverityColor(String severity) {
@@ -132,9 +123,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text('Detection History'),
+        backgroundColor: Colors.white,
+        elevation: 0,
         actions: [
           Consumer<DetectionProvider>(
             builder: (context, provider, child) {
@@ -142,6 +139,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 return IconButton(
                   icon: const Icon(Icons.delete_sweep),
                   onPressed: _clearHistory,
+                  tooltip: 'Clear All History',
                 );
               }
               return const SizedBox();
@@ -152,44 +150,67 @@ class _HistoryScreenState extends State<HistoryScreen> {
       body: Consumer<DetectionProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading history...'),
-                ],
-              ),
-            );
+            return _buildLoadingView();
           }
 
           return Column(
             children: [
-              // Search Bar
+              // Search Bar with enhanced design
               Container(
-                padding: const EdgeInsets.all(16),
-                color: Theme.of(context).colorScheme.surface,
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  decoration: InputDecoration(
-                    hintText: 'Search by disease or severity...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                padding: EdgeInsets.all(isTablet ? 24 : 16),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
+                  ],
+                ),
+                child: AnimationConfiguration.staggeredList(
+                  position: 0,
+                  duration: const Duration(milliseconds: 600),
+                  child: SlideAnimation(
+                    verticalOffset: -30.0,
+                    child: FadeInAnimation(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.grey[200]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: _onSearchChanged,
+                          decoration: InputDecoration(
+                            hintText: 'Search by disease or severity...',
+                            hintStyle: TextStyle(color: Colors.grey[500]),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.grey[500],
+                            ),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _onSearchChanged('');
+                                    },
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -198,33 +219,154 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Expanded(
                 child: _filteredHistory.isEmpty
                     ? _buildEmptyState()
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _filteredHistory.length,
-                        itemBuilder: (context, index) {
-                          final item = _filteredHistory[index];
-                          return _buildHistoryItem(item);
-                        },
+                    : AnimationLimiter(
+                        child: isTablet
+                            ? GridView.builder(
+                                padding: EdgeInsets.all(isTablet ? 24 : 16),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 1.2,
+                                ),
+                                itemCount: _filteredHistory.length,
+                                itemBuilder: (context, index) {
+                                  return AnimationConfiguration.staggeredGrid(
+                                    position: index,
+                                    duration: const Duration(milliseconds: 600),
+                                    columnCount: 2,
+                                    child: SlideAnimation(
+                                      verticalOffset: 50.0,
+                                      child: FadeInAnimation(
+                                        child: _buildHistoryItem(_filteredHistory[index]),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                            : ListView.builder(
+                                padding: EdgeInsets.all(isTablet ? 24 : 16),
+                                itemCount: _filteredHistory.length,
+                                itemBuilder: (context, index) {
+                                  return AnimationConfiguration.staggeredList(
+                                    position: index,
+                                    duration: const Duration(milliseconds: 600),
+                                    child: SlideAnimation(
+                                      verticalOffset: 50.0,
+                                      child: FadeInAnimation(
+                                        child: _buildHistoryItem(_filteredHistory[index]),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
               ),
 
-              // Stats
+              // Stats with enhanced design
               if (_filteredHistory.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.all(12),
-                  color: Theme.of(context).colorScheme.surface,
-                  child: Text(
-                    '${_filteredHistory.length} detection${_filteredHistory.length != 1 ? 's' : ''} found',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                    textAlign: TextAlign.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.analytics,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${_filteredHistory.length} detection${_filteredHistory.length != 1 ? 's' : ''} found',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLoadingView() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFFF1F8E9),
+            Color(0xFFE8F5E8),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: Center(
+        child: AnimationConfiguration.staggeredList(
+          position: 0,
+          duration: const Duration(milliseconds: 800),
+          child: SlideAnimation(
+            verticalOffset: 50.0,
+            child: FadeInAnimation(
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      color: Color(0xFF4CAF50),
+                      strokeWidth: 3,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'Loading History',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1B5E20),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Please wait while we fetch your detection history',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -292,25 +434,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
           child: Row(
             children: [
               // Thumbnail
-              ClipRRect(
+              OptimizedImage(
+                imagePath: item.imageUri,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
                 borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(item.imageUri),
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      color: Colors.grey[300],
-                      child: const Icon(
-                        Icons.image_not_supported,
-                        color: Colors.grey,
-                      ),
-                    );
-                  },
-                ),
+                showThumbnail: true,
               ),
               
               const SizedBox(width: 16),
